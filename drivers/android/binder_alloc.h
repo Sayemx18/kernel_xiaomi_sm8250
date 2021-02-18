@@ -66,7 +66,7 @@ struct binder_buffer {
 	size_t offsets_size;
 	size_t extra_buffers_size;
 	void __user *user_data;
-	int    pid;
+	int pid;
 };
 
 /**
@@ -205,4 +205,3 @@ void binder_alloc_copy_from_buffer(struct binder_alloc *alloc,
 				   size_t bytes);
 
 #endif /* _LINUX_BINDER_ALLOC_H */
-

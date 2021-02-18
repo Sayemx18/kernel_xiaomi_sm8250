@@ -419,11 +419,11 @@ static bool debug_low_async_space_locked(struct binder_alloc *alloc, int pid)
 
 static struct binder_buffer *binder_alloc_new_buf_locked(
 				struct binder_alloc *alloc,
-				size_t data_size,
-				size_t offsets_size,
-				size_t extra_buffers_size,
-				int is_async,
-				int pid)
+				 size_t data_size,
+				 size_t offsets_size,
+				 size_t extra_buffers_size,
+				 int is_async,
+				 int pid)
 {
 	struct rb_node *n = alloc->free_buffers.rb_node;
 	struct binder_buffer *buffer;
@@ -649,7 +649,6 @@ size_t binder_alloc_get_free_space(struct binder_alloc *alloc)
  * @offsets_size:       user specified buffer offset
  * @extra_buffers_size: size of extra space for meta-data (eg, security context)
  * @is_async:           buffer for async transaction
- * @pid:				pid to attribute allocation to (used for debugging)
  *
  * Allocate a new buffer given the requested sizes. Returns
  * the kernel version of the buffer pointer. The size allocated
