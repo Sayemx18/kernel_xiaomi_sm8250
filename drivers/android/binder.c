@@ -5635,6 +5635,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	}
+
 	case BINDER_ENABLE_ONEWAY_SPAM_DETECTION: {
 		uint32_t enable;
 
