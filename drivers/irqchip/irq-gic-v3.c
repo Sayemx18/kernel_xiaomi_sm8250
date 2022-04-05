@@ -403,6 +403,30 @@ static void gic_show_resume_irq(struct gic_chip_data *gic)
 			name = desc->action->name;
 
 		pr_warn("%s: %d triggered %s\n", __func__, irq, name);
+		log_irq_wakeup_reason(irq);
+#ifdef CONFIG_OPLUS_WAKELOCK_PROFILER
+		do {
+			int platform_id = get_cached_platform_id();
+			if (platform_id == KONA) {
+				if (irq >= 154 && irq <= 185) { /*pcie2 is modem*/
+					name = IRQ_NAME_MODEM_QMI;
+					oplus_match_modem_wakeup();
+				} else if (irq >= 85 && irq <= 116) {/*pcie0 is wlan*/
+					name = IRQ_NAME_WLAN_IPCC_DATA;
+					oplus_match_wlan_wakeup();
+				}
+			} else if (platform_id == LITO || platform_id == LAGOON) {
+				if (!strcmp(name, IRQ_NAME_MODEM_MODEM)) {
+					name = IRQ_NAME_MODEM_QMI;
+				}
+				if (strncmp(name, "ipcc_1", strlen("ipcc_1")) == 0) {
+                    is_first_ipcc_msg = 1;
+					oplus_match_modem_wakeup();
+				}
+			}
+			wakeup_reasons_statics(name, WS_CNT_MODEM|WS_CNT_WLAN|WS_CNT_ADSP|WS_CNT_CDSP|WS_CNT_SLPI);
+		} while(0);
+#endif /* CONFIG_OPLUS_WAKELOCK_PROFILER */
 	}
 }
 
