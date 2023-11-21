@@ -2391,6 +2391,10 @@ long _do_fork(struct kernel_clone_args *args)
 	int trace = 0;
 	long nr;
 
+	if (task_is_zygote(current)) {
+		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 50);
+	}
+
 	/*
 	 * Determine whether and which event to report to ptracer.  When
 	 * called from kernel_thread or CLONE_UNTRACED is explicitly
