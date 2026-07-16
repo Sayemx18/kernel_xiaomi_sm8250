@@ -6715,6 +6715,7 @@ static void __sde_crtc_idle_notify_work_cmd_mode(struct kthread_work *work)
 		calc_fps(0,0);
 		pr_debug("idle timeout notified cmd mode\n");
 	}
+}
 	
 /*
  * __sde_crtc_early_wakeup_work - trigger early wakeup from user space
