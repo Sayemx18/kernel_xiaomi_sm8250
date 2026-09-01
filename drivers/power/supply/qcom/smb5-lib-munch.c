@@ -49,7 +49,9 @@
 
 bool off_charge_flag;
 static bool first_boot_flag;
+#ifdef CONFIG_BYPASS_CHARGING
 static int bypass_charging = 0;
+#endif
 
 static void update_sw_icl_max(struct smb_charger *chg, int pst);
 static int smblib_get_prop_typec_mode(struct smb_charger *chg);
@@ -2413,6 +2415,7 @@ int smblib_vbus_regulator_is_enabled(struct regulator_dev *rdev)
 int smblib_get_prop_input_suspend(struct smb_charger *chg,
 				  union power_supply_propval *val)
 {
+#ifdef CONFIG_BYPASS_CHARGING
 	if ((get_client_vote(chg->chg_disable_votable, BYPASS_VOTER) == 1)) {
 		val->intval = 1;
 	} else if (bypass_charging) {
@@ -2420,7 +2423,11 @@ int smblib_get_prop_input_suspend(struct smb_charger *chg,
 	} else {
 		val->intval = 0;
 	}
-
+#else
+	val->intval
+		= (get_client_vote(chg->usb_icl_votable, USER_VOTER) == 0)
+		 || get_client_vote(chg->dc_suspend_votable, USER_VOTER);
+#endif
 	return 0;
 }
 
@@ -3186,20 +3193,29 @@ int smblib_set_prop_input_suspend(struct smb_charger *chg,
 	int rc;
 
 	/* vote 0mA when suspended */
+#ifdef CONFIG_BYPASS_CHARGING
 	rc = vote(chg->usb_icl_votable, USER_VOTER, false, 0);
+#else
+	rc = vote(chg->usb_icl_votable, USER_VOTER, (bool)val->intval, 0);
+#endif
 	if (rc < 0) {
 		smblib_err(chg, "Couldn't vote to %s USB rc=%d\n",
 			(bool)val->intval ? "suspend" : "resume", rc);
 		return rc;
 	}
 
+#ifdef CONFIG_BYPASS_CHARGING
 	rc = vote(chg->dc_suspend_votable, USER_VOTER, false, 0);
+#else
+	rc = vote(chg->dc_suspend_votable, USER_VOTER, (bool)val->intval, 0);
+#endif
 	if (rc < 0) {
 		smblib_err(chg, "Couldn't vote to %s DC rc=%d\n",
 			(bool)val->intval ? "suspend" : "resume", rc);
 		return rc;
 	}
 
+#ifdef CONFIG_BYPASS_CHARGING
 	if (val->intval == 1) {
           	rc = vote(chg->chg_disable_votable, BYPASS_VOTER, 1, 0);
           	bypass_charging = 0;
@@ -3216,6 +3232,7 @@ int smblib_set_prop_input_suspend(struct smb_charger *chg,
   			val->intval, rc);
   		return rc;
   	}
+#endif
 
 	power_supply_changed(chg->batt_psy);
 	return rc;
@@ -3524,11 +3541,6 @@ static int smblib_therm_charging(struct smb_charger *chg)
 	int thermal_fcc_ua = 0;
 	int rc;
 
-#ifdef CONFIG_D8G_SERVICE
-	if (skip_thermal || bypass_charging)
-		chg->system_temp_level = 0;
-#endif
-
 	if (chg->system_temp_level >= MAX_TEMP_LEVEL)
 		return 0;
 
@@ -3618,8 +3630,10 @@ static void smblib_thermal_setting_work(struct work_struct *work)
 	struct smb_charger *chg = container_of(work, struct smb_charger,
 			thermal_setting_work.work);
 
+#ifdef CONFIG_BYPASS_CHARGING
 	if (bypass_charging)
 		chg->pps_thermal_level = 0;
+#endif
 
 	if (chg->pps_thermal_level > chg->system_temp_level) {
 		if (chg->pps_thermal_level - chg->system_temp_level >= 2)
@@ -3680,8 +3694,10 @@ int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 	vote(chg->chg_disable_votable, THERMAL_DAEMON_VOTER, false, 0);
 #endif
 
+#ifdef CONFIG_BYPASS_CHARGING
 	if (bypass_charging)
 		chg->system_temp_level = 0;
+#endif
 
 	if (chg->pd_active == POWER_SUPPLY_PD_PPS_ACTIVE)
 		schedule_delayed_work(&chg->thermal_setting_work, 3 * HZ);
