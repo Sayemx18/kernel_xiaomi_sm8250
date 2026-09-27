@@ -2717,6 +2717,16 @@ static inline struct sched_cluster *rq_cluster(struct rq *rq)
 	return NULL;
 }
 
+static inline bool prefer_spread_on_idle(int cpu, bool wake)
+{
+	return false;
+}
+
+static inline bool same_cluster(int cpu1, int cpu2)
+{
+	return rq_cluster(cpu_rq(cpu1)) == rq_cluster(cpu_rq(cpu2));
+}
+
 static inline bool is_asym_cap_cpu(int cpu) { return false; }
 
 static inline int asym_cap_siblings(int cpu1, int cpu2) { return 0; }
