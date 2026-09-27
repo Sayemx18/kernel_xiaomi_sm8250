@@ -467,6 +467,32 @@ static struct kobj_type ktype_core_ctl = {
 static struct sched_avg_stats nr_stats[NR_CPUS];
 
 /*
+ * WALT used to provide a time-averaged runnable count here.  With WALT
+ * removed, take a consistent snapshot of each runqueue for core_ctl.
+ */
+static void sched_get_nr_running_avg(struct sched_avg_stats *stats)
+{
+	int cpu;
+
+	for_each_possible_cpu(cpu) {
+		struct rq *rq = cpu_rq(cpu);
+		struct rq_flags rf;
+		unsigned int nr_running;
+		bool misfit;
+
+		rq_lock_irqsave(rq, &rf);
+		nr_running = rq->nr_running;
+		misfit = rq->misfit_task_load;
+		rq_unlock_irqrestore(rq, &rf);
+
+		stats[cpu].nr = nr_running;
+		stats[cpu].nr_misfit = misfit ? 1 : 0;
+		stats[cpu].nr_max = nr_running;
+		stats[cpu].nr_scaled = nr_running * 100;
+	}
+}
+
+/*
  * nr_need:
  *   Number of tasks running on this cluster plus
  *   tasks running on higher capacity clusters.
