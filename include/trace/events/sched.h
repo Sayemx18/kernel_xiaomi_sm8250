@@ -1213,11 +1213,9 @@ TRACE_EVENT(sched_cpu_util,
 		__field(unsigned int,	capacity)
 		__field(unsigned int,	capacity_orig)
 		__field(int,		idle_state)
-		__field(u64,		irqload)
 		__field(int,		online)
 		__field(int,		isolated)
 		__field(int,		reserved)
-		__field(int,		high_irq_load)
 	),
 
 	TP_fast_assign(
@@ -1229,19 +1227,17 @@ TRACE_EVENT(sched_cpu_util,
 		__entry->capacity           = capacity_of(cpu);
 		__entry->capacity_orig      = capacity_orig_of(cpu);
 		__entry->idle_state         = idle_get_state_idx(cpu_rq(cpu));
-		__entry->irqload            = sched_irqload(cpu);
 		__entry->online             = cpu_online(cpu);
 		__entry->isolated           = cpu_isolated(cpu);
 		__entry->reserved           = is_reserved(cpu);
-		__entry->high_irq_load      = sched_cpu_high_irqload(cpu);
 	),
 
-	TP_printk("cpu=%d nr_running=%d cpu_util=%ld cpu_util_cum=%ld capacity_curr=%u capacity=%u capacity_orig=%u idle_state=%d irqload=%llu online=%u, isolated=%u, reserved=%u, high_irq_load=%u",
+	TP_printk("cpu=%d nr_running=%d cpu_util=%ld cpu_util_cum=%ld capacity_curr=%u capacity=%u capacity_orig=%u idle_state=%d online=%u, isolated=%u, reserved=%u",
 		__entry->cpu, __entry->nr_running, __entry->cpu_util,
 		__entry->cpu_util_cum, __entry->capacity_curr,
 		__entry->capacity, __entry->capacity_orig,
-		__entry->idle_state, __entry->irqload, __entry->online,
-		__entry->isolated, __entry->reserved, __entry->high_irq_load)
+		__entry->idle_state, __entry->online,
+		__entry->isolated, __entry->reserved)
 );
 
 TRACE_EVENT(sched_compute_energy,
@@ -1455,18 +1451,16 @@ TRACE_EVENT(core_ctl_set_busy,
 		__field(u32, busy)
 		__field(u32, old_is_busy)
 		__field(u32, is_busy)
-		__field(bool, high_irqload)
 	),
 	TP_fast_assign(
 		__entry->cpu = cpu;
 		__entry->busy = busy;
 		__entry->old_is_busy = old_is_busy;
 		__entry->is_busy = is_busy;
-		__entry->high_irqload = sched_cpu_high_irqload(cpu);
 	),
-	TP_printk("cpu=%u, busy=%u, old_is_busy=%u, new_is_busy=%u high_irqload=%d",
+	TP_printk("cpu=%u, busy=%u, old_is_busy=%u, new_is_busy=%u",
 		__entry->cpu, __entry->busy, __entry->old_is_busy,
-		__entry->is_busy, __entry->high_irqload)
+		__entry->is_busy)
 );
 
 TRACE_EVENT(core_ctl_set_boost,

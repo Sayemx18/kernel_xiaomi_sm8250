@@ -1813,9 +1813,6 @@ retry:
 			if (cpu_isolated(cpu))
 				continue;
 
-			if (sched_cpu_high_irqload(cpu))
-				continue;
-
 			if (__cpu_overutilized(cpu, tutil))
 				continue;
 

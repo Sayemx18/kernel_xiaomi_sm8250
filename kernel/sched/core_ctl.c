@@ -20,10 +20,6 @@
 #include <trace/events/sched.h>
 #include "sched.h"
 
-#ifndef DEFAULT_SCHED_RAVG_WINDOW
-#define DEFAULT_SCHED_RAVG_WINDOW TICK_NSEC
-#endif
-
 struct cluster_data {
 	bool inited;
 	unsigned int min_cpus;
@@ -768,13 +764,6 @@ static bool adjustment_possible(const struct cluster_data *cluster,
 						cluster->nr_isolated_cpus));
 }
 
-static bool need_all_cpus(const struct cluster_data *cluster)
-{
-
-	return (is_min_capacity_cpu(cluster->first_cpu) &&
-		sched_ravg_window < DEFAULT_SCHED_RAVG_WINDOW);
-}
-
 static bool eval_need(struct cluster_data *cluster)
 {
 	unsigned long flags;
@@ -790,7 +779,7 @@ static bool eval_need(struct cluster_data *cluster)
 
 	spin_lock_irqsave(&state_lock, flags);
 
-	if (cluster->boost || !cluster->enable || need_all_cpus(cluster)) {
+	if (cluster->boost || !cluster->enable) {
 		need_cpus = cluster->max_cpus;
 	} else {
 		cluster->active_cpus = get_active_cpu_count(cluster);
@@ -798,8 +787,7 @@ static bool eval_need(struct cluster_data *cluster)
 		list_for_each_entry(c, &cluster->lru, sib) {
 			bool old_is_busy = c->is_busy;
 
-			if (c->busy >= cluster->busy_up_thres[thres_idx] ||
-			    sched_cpu_high_irqload(c->cpu))
+			if (c->busy >= cluster->busy_up_thres[thres_idx])
 				c->is_busy = true;
 			else if (c->busy < cluster->busy_down_thres[thres_idx])
 				c->is_busy = false;

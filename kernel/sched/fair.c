@@ -6861,9 +6861,6 @@ static void find_best_target(struct sched_domain *sd, cpumask_t *cpus,
 			if (is_reserved(i))
 				continue;
 
-			if (sched_cpu_high_irqload(i))
-				continue;
-
 			if (fbt_env->skip_cpu == i)
 				continue;
 
