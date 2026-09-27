@@ -17,6 +17,11 @@
 #include <trace/events/power.h>
 #include <linux/sched/sysctl.h>
 
+#define DEFAULT_HISPEED_LOAD		90
+#define DEFAULT_CPU0_RTG_BOOST_FREQ	0
+#define DEFAULT_CPU4_RTG_BOOST_FREQ	0
+#define DEFAULT_CPU7_RTG_BOOST_FREQ	0
+
 struct sugov_tunables {
 	struct gov_attr_set	attr_set;
 	unsigned int		up_rate_limit_us;
