@@ -8160,7 +8160,7 @@ static void uclamp_set(struct cgroup_subsys_state *css)
 		return;
 
 	for (i = 0; i < ARRAY_SIZE(tgts); i++) {
-		const struct uclamp_param *tgt = &tgts[i];
+		struct uclamp_param *tgt = &tgts[i];
 		struct task_group *tg;
 
 		if (strcmp(css->cgroup->kn->name, tgt->name))
