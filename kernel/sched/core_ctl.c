@@ -13,11 +13,17 @@
 #include <linux/sched.h>
 #include <linux/sched/rt.h>
 #include <linux/syscore_ops.h>
+#include <linux/topology.h>
 #include <uapi/linux/sched/types.h>
 #include <linux/sched/core_ctl.h>
 
 #include <trace/events/sched.h>
 #include "sched.h"
+#include "walt.h"
+
+#ifndef DEFAULT_SCHED_RAVG_WINDOW
+#define DEFAULT_SCHED_RAVG_WINDOW TICK_NSEC
+#endif
 
 struct cluster_data {
 	bool inited;
@@ -1329,7 +1335,9 @@ static int cluster_init(const struct cpumask *mask)
 
 static int __init core_ctl_init(void)
 {
-	struct sched_cluster *cluster;
+	cpumask_t cluster_cpus;
+	DECLARE_BITMAP(seen_packages, NR_CPUS);
+	int package_id, cpu, cluster_cpu;
 	int ret;
 
 	cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
@@ -1340,8 +1348,24 @@ static int __init core_ctl_init(void)
 			"core_ctl/isolation:dead",
 			NULL, core_ctl_isolation_dead_cpu);
 
-	for_each_sched_cluster(cluster) {
-		ret = cluster_init(&cluster->cpus);
+	bitmap_zero(seen_packages, NR_CPUS);
+	for_each_online_cpu(cpu) {
+		package_id = topology_physical_package_id(cpu);
+		if (package_id < 0 || package_id >= NR_CPUS)
+			package_id = cpu;
+		if (test_and_set_bit(package_id, seen_packages))
+			continue;
+
+		cpumask_clear(&cluster_cpus);
+		for_each_online_cpu(cluster_cpu) {
+			int cpu_package = topology_physical_package_id(cluster_cpu);
+
+			if (cpu_package < 0 || cpu_package >= NR_CPUS)
+				cpu_package = cluster_cpu;
+			if (cpu_package == package_id)
+				cpumask_set_cpu(cluster_cpu, &cluster_cpus);
+		}
+		ret = cluster_init(&cluster_cpus);
 		if (ret)
 			pr_warn("unable to create core ctl group: %d\n", ret);
 	}
