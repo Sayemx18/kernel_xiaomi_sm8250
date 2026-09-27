@@ -23,7 +23,6 @@
 #include "../smpboot.h"
 
 #include "pelt.h"
-#include "walt.h"
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
@@ -1367,36 +1366,19 @@ static void __setscheduler_uclamp(struct task_struct *p,
 				  const struct sched_attr *attr) { }
 static inline void uclamp_fork(struct task_struct *p) { }
 
-long schedtune_task_margin(struct task_struct *task);
-
 #ifdef CONFIG_SMP
 unsigned int uclamp_task(struct task_struct *p)
 {
-	unsigned long util = task_util_est(p);
-#ifdef CONFIG_SCHED_TUNE
-	long margin = schedtune_task_margin(p);
-
-	trace_sched_boost_task(p, util, margin);
-
-	util += margin;
-#endif
-
-	return util;
+	return task_util_est(p);
 }
 
 bool uclamp_boosted(struct task_struct *p)
 {
-#ifdef CONFIG_SCHED_TUNE
-	return schedtune_task_boost(p) > 0;
-#endif
 	return false;
 }
 
 bool uclamp_latency_sensitive(struct task_struct *p)
 {
-#ifdef CONFIG_SCHED_TUNE
-	return schedtune_prefer_idle(p) != 0;
-#endif
 	return false;
 }
 #endif /* CONFIG_SMP */
@@ -1416,7 +1398,6 @@ static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 
 	uclamp_rq_inc(rq, p);
 	p->sched_class->enqueue_task(rq, p, flags);
-	walt_update_last_enqueue(p);
 	trace_sched_enq_deq_task(p, 1, cpumask_bits(&p->cpus_allowed)[0]);
 }
 
@@ -2580,8 +2561,8 @@ static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
 	struct rq_flags rf;
 
 #if defined(CONFIG_SMP)
-	if ((sched_feat(TTWU_QUEUE) && !cpus_share_cache(smp_processor_id(), cpu)) ||
-			walt_want_remote_wakeup()) {
+	if (sched_feat(TTWU_QUEUE) &&
+	    !cpus_share_cache(smp_processor_id(), cpu)) {
 		sched_clock_cpu(cpu); /* Sync clocks across CPUs */
 		ttwu_queue_remote(p, cpu, wake_flags);
 		return;
@@ -2676,10 +2657,6 @@ static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
  * must ensure that CONDITION=1 done by the caller can not be reordered with
  * accesses to the task state; see try_to_wake_up() and set_current_state().
  */
-
-#ifdef CONFIG_SMP
-#define walt_try_to_wake_up(a) {}
-#endif
 
 /**
  * try_to_wake_up - wake up a thread
@@ -2783,7 +2760,6 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 	 */
 	smp_cond_load_acquire(&p->on_cpu, !VAL);
 
-	walt_try_to_wake_up(p);
 
 	p->sched_contributes_to_load = !!task_contributes_to_load(p);
 	p->state = TASK_WAKING;
@@ -2820,7 +2796,6 @@ out:
 		raw_spin_lock_irqsave(&cpu_rq(cpu)->lock, flags);
 		if (do_pl_notif(cpu_rq(cpu)))
 			cpufreq_update_util(cpu_rq(cpu),
-						SCHED_CPUFREQ_WALT |
 						SCHED_CPUFREQ_PL);
 		raw_spin_unlock_irqrestore(&cpu_rq(cpu)->lock, flags);
 	}
@@ -3850,7 +3825,7 @@ void scheduler_tick(void)
 
 	early_notif = early_detection_notify(rq, wallclock);
 	if (early_notif)
-		flag = SCHED_CPUFREQ_WALT | SCHED_CPUFREQ_EARLY_DET;
+		flag = SCHED_CPUFREQ_EARLY_DET;
 
 	cpufreq_update_util(rq, flag);
 	rq_unlock(rq, &rf);
@@ -6753,7 +6728,6 @@ int do_isolation_work_cpu_stop(void *data)
 		set_rq_online(rq);
 	rq_unlock(rq, &rf);
 
-	clear_walt_request(cpu);
 	local_irq_enable();
 	return 0;
 }
@@ -7123,7 +7097,6 @@ int sched_cpu_starting(unsigned int cpu)
 {
 	sched_rq_cpu_starting(cpu);
 	sched_tick_start(cpu);
-	clear_walt_request(cpu);
 	return 0;
 }
 
@@ -7147,7 +7120,6 @@ int sched_cpu_dying(unsigned int cpu)
 	BUG_ON(rq->nr_running != 1);
 	rq_unlock_irqrestore(rq, &rf);
 
-	clear_walt_request(cpu);
 
 	calc_load_migrate(rq);
 	update_max_interval();
@@ -7348,7 +7320,6 @@ void __init sched_init(void)
 		rq->avg_idle = 2*sysctl_sched_migration_cost;
 		rq->max_idle_balance_cost = sysctl_sched_migration_cost;
 		rq->push_task = NULL;
-		walt_sched_init_rq(rq);
 
 		INIT_LIST_HEAD(&rq->cfs_tasks);
 

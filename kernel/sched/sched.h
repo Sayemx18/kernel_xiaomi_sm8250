@@ -83,7 +83,6 @@
 # define SCHED_WARN_ON(x)	({ (void)(x), 0; })
 #endif
 
-#include "tune.h"
 
 struct rq;
 struct cpuidle_state;
@@ -91,14 +90,6 @@ struct cpuidle_state;
 extern __read_mostly bool sched_predl;
 extern unsigned int sched_capacity_margin_up[NR_CPUS];
 extern unsigned int sched_capacity_margin_down[NR_CPUS];
-
-struct sched_walt_cpu_load {
-	unsigned long nl;
-	unsigned long pl;
-	bool rtgb_active;
-	u64 ws;
-};
-
 
 /* task_struct::on_rq states: */
 #define TASK_ON_RQ_QUEUED	1
@@ -2126,18 +2117,6 @@ static inline unsigned long cpu_util_cum(int cpu, int delta)
 	return (delta >= capacity) ? capacity : delta;
 }
 
-#ifdef CONFIG_SCHED_TUNE
-extern unsigned long stune_util(int cpu, unsigned long other_util,
-				struct sched_walt_cpu_load *walt_load);
-#endif
-
-static inline unsigned long
-cpu_util_freq(int cpu, struct sched_walt_cpu_load *walt_load)
-{
-
-	return cpu_util(cpu);
-}
-
 extern unsigned int capacity_margin_freq;
 
 static inline unsigned long
@@ -2682,7 +2661,6 @@ enum sched_boost_policy {
 };
 
 
-struct walt_sched_stats;
 struct related_thread_group;
 struct sched_cluster;
 
@@ -2790,17 +2768,12 @@ static inline int mark_reserved(int cpu)
 static inline void clear_reserved(int cpu) { }
 static inline int alloc_related_thread_groups(void) { return 0; }
 
-static inline void walt_fixup_cum_window_demand(struct rq *rq,
-						s64 scaled_delta) { }
-
 #ifdef CONFIG_SMP
 static inline unsigned long thermal_cap(int cpu)
 {
 	return cpu_rq(cpu)->cpu_capacity_orig;
 }
 #endif
-
-static inline void clear_walt_request(int cpu) { }
 
 static inline int is_reserved(int cpu)
 {
@@ -2829,11 +2802,6 @@ static inline unsigned int power_cost(int cpu, u64 demand)
 #endif
 
 static inline void note_task_waking(struct task_struct *p, u64 wallclock) { }
-static inline bool walt_want_remote_wakeup(void)
-{
-	return false;
-}
-
 struct sched_avg_stats {
 	int nr;
 	int nr_misfit;

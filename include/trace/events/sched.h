@@ -1049,7 +1049,6 @@ TRACE_EVENT(sched_load_avg_cpu,
 		__field(unsigned long,	load_avg)
 		__field(unsigned long,	util_avg)
 		__field(unsigned long,	util_avg_pelt)
-		__field(u32,		util_avg_walt)
 	),
 
 	TP_fast_assign(
@@ -1057,12 +1056,11 @@ TRACE_EVENT(sched_load_avg_cpu,
 		__entry->load_avg               = cfs_rq->avg.load_avg;
 		__entry->util_avg               = cfs_rq->avg.util_avg;
 		__entry->util_avg_pelt  = cfs_rq->avg.util_avg;
-		__entry->util_avg_walt  = 0;
 	),
 
-	TP_printk("cpu=%d load_avg=%lu util_avg=%lu util_avg_pelt=%lu util_avg_walt=%u",
+	TP_printk("cpu=%d load_avg=%lu util_avg=%lu util_avg_pelt=%lu",
 		__entry->cpu, __entry->load_avg, __entry->util_avg,
-		__entry->util_avg_pelt, __entry->util_avg_walt)
+		__entry->util_avg_pelt)
 );
 
 
@@ -1220,7 +1218,6 @@ TRACE_EVENT(sched_cpu_util,
 		__field(int,		isolated)
 		__field(int,		reserved)
 		__field(int,		high_irq_load)
-		__field(unsigned int,	nr_rtg_high_prio_tasks)
 	),
 
 	TP_fast_assign(
@@ -1237,16 +1234,14 @@ TRACE_EVENT(sched_cpu_util,
 		__entry->isolated           = cpu_isolated(cpu);
 		__entry->reserved           = is_reserved(cpu);
 		__entry->high_irq_load      = sched_cpu_high_irqload(cpu);
-		__entry->nr_rtg_high_prio_tasks = walt_nr_rtg_high_prio(cpu);
 	),
 
-	TP_printk("cpu=%d nr_running=%d cpu_util=%ld cpu_util_cum=%ld capacity_curr=%u capacity=%u capacity_orig=%u idle_state=%d irqload=%llu online=%u, isolated=%u, reserved=%u, high_irq_load=%u nr_rtg_hp=%u",
+	TP_printk("cpu=%d nr_running=%d cpu_util=%ld cpu_util_cum=%ld capacity_curr=%u capacity=%u capacity_orig=%u idle_state=%d irqload=%llu online=%u, isolated=%u, reserved=%u, high_irq_load=%u",
 		__entry->cpu, __entry->nr_running, __entry->cpu_util,
 		__entry->cpu_util_cum, __entry->capacity_curr,
 		__entry->capacity, __entry->capacity_orig,
 		__entry->idle_state, __entry->irqload, __entry->online,
-		__entry->isolated, __entry->reserved, __entry->high_irq_load,
-		__entry->nr_rtg_high_prio_tasks)
+		__entry->isolated, __entry->reserved, __entry->high_irq_load)
 );
 
 TRACE_EVENT(sched_compute_energy,
@@ -1544,101 +1539,6 @@ TRACE_EVENT(core_ctl_notif_data,
 		  __entry->ta_util[0], __entry->ta_util[1],
 		  __entry->ta_util[2], __entry->cur_cap[0],
 		  __entry->cur_cap[1], __entry->cur_cap[2])
-);
-
-/*
- * Tracepoint for schedtune_tasks_update
- */
-TRACE_EVENT(sched_tune_tasks_update,
-
-	TP_PROTO(struct task_struct *tsk, int cpu, int tasks, int idx,
-		int boost, int max_boost, u64 group_ts),
-
-	TP_ARGS(tsk, cpu, tasks, idx, boost, max_boost, group_ts),
-
-	TP_STRUCT__entry(
-		__array( char,  comm,   TASK_COMM_LEN   )
-		__field( pid_t,         pid             )
-		__field( int,           cpu             )
-		__field( int,           tasks           )
-		__field( int,           idx             )
-		__field( int,           boost           )
-		__field( int,           max_boost       )
-		__field( u64,		group_ts	)
-	),
-
-	TP_fast_assign(
-		memcpy(__entry->comm, tsk->comm, TASK_COMM_LEN);
-		__entry->pid            = tsk->pid;
-		__entry->cpu            = cpu;
-		__entry->tasks          = tasks;
-		__entry->idx            = idx;
-		__entry->boost          = boost;
-		__entry->max_boost      = max_boost;
-		__entry->group_ts	= group_ts;
-	),
-
-	TP_printk("pid=%d comm=%s "
-		"cpu=%d tasks=%d idx=%d boost=%d max_boost=%d timeout=%llu",
-		__entry->pid, __entry->comm,
-		__entry->cpu, __entry->tasks, __entry->idx,
-		__entry->boost, __entry->max_boost,
-		__entry->group_ts)
-);
-
-/*
- * Tracepoint for schedtune_boostgroup_update
- */
-TRACE_EVENT(sched_tune_boostgroup_update,
-
-	TP_PROTO(int cpu, int variation, int max_boost),
-
-	TP_ARGS(cpu, variation, max_boost),
-
-	TP_STRUCT__entry(
-		__field( int,   cpu		)
-		__field( int,   variation	)
-		__field( int,   max_boost	)
-	),
-
-	TP_fast_assign(
-		__entry->cpu            = cpu;
-		__entry->variation      = variation;
-		__entry->max_boost      = max_boost;
-	),
-
-	TP_printk("cpu=%d variation=%d max_boost=%d",
-		__entry->cpu, __entry->variation, __entry->max_boost)
-);
-
-/*
- * Tracepoint for accounting task boosted utilization
- */
-TRACE_EVENT(sched_boost_task,
-
-	TP_PROTO(struct task_struct *tsk, unsigned long util, long margin),
-
-	TP_ARGS(tsk, util, margin),
-
-	TP_STRUCT__entry(
-		__array( char,  comm,   TASK_COMM_LEN	)
-		__field( pid_t,         pid		)
-		__field( unsigned long, util		)
-		__field( long,          margin		)
-
-	),
-
-	TP_fast_assign(
-		memcpy(__entry->comm, tsk->comm, TASK_COMM_LEN);
-		__entry->pid    = tsk->pid;
-		__entry->util   = util;
-		__entry->margin = margin;
-	),
-
-	TP_printk("comm=%s pid=%d util=%lu margin=%ld",
-		__entry->comm, __entry->pid,
-		__entry->util,
-		__entry->margin)
 );
 
 /*

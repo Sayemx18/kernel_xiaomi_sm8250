@@ -19,7 +19,6 @@
 
 #include <trace/events/sched.h>
 #include "sched.h"
-#include "walt.h"
 
 #ifndef DEFAULT_SCHED_RAVG_WINDOW
 #define DEFAULT_SCHED_RAVG_WINDOW TICK_NSEC
