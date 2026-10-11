@@ -665,7 +665,7 @@ int bitmap_parse(const char *start, unsigned int buflen,
 			return PTR_ERR(end);
 	}
 
-	unset_bit = (BITS_TO_U32(nmaskbits) - chunks) * 32;
+	unset_bit = (DIV_ROUND_UP(nmaskbits, 32) - chunks) * 32;
 	if (unset_bit < nmaskbits) {
 		bitmap_clear(maskp, unset_bit, nmaskbits - unset_bit);
 		return 0;

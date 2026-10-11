@@ -24,6 +24,13 @@ config GENERIC_PINCONF
 	bool
 	select PINCONF
 
+config PINCTRL_WCD
+	tristate "Qualcomm WCD pin controller"
+	depends on OF && GPIOLIB
+	select GENERIC_PINCONF
+	help
+	  Support the pin controller and GPIO interface in Qualcomm WCD codecs.
+
 config DEBUG_PINCTRL
 	bool "Debug PINCTRL calls"
 	depends on DEBUG_KERNEL
