@@ -2432,8 +2432,8 @@ uint8_t *lim_process_rmf_disconnect_frame(struct mac_context *mac,
 		return NULL;
 	}
 
-	mmie_len = (mgmtcipherset & (1 << WLAN_CRYPTO_CIPHER_AES_CMAC) ?
-		    cds_get_mmie_size() : cds_get_gmac_mmie_size());
+	mmie_len = 10 + (mgmtcipherset &
+			 (1 << WLAN_CRYPTO_CIPHER_AES_CMAC) ? 8 : 16);
 
 	efrm = orig_ptr + deauth_disassoc_frame_len;
 	if (!mac->pmf_offload &&
