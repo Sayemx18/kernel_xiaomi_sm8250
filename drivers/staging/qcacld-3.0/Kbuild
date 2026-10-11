@@ -624,7 +624,8 @@ QDF_TEST_OBJ_DIR := $(WLAN_COMMON_ROOT)/$(QDF_TEST_DIR)
 QDF_INC := \
 	-I $(srctree)/$(WLAN_COMMON_INC)/$(QDF_OS_INC_DIR) \
 	-I $(srctree)/$(WLAN_COMMON_INC)/$(QDF_OS_LINUX_SRC_DIR) \
-	-I $(srctree)/$(WLAN_COMMON_INC)/$(QDF_TEST_DIR)
+	-I $(srctree)/$(WLAN_COMMON_INC)/$(QDF_TEST_DIR) \
+	-I $(srctree)/$(WLAN_ROOT)/core/hdd/src
 
 QDF_OBJS := \
 	$(QDF_LINUX_OBJ_DIR)/qdf_crypto.o \
