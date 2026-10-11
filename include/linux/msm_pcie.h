@@ -269,6 +269,13 @@ static inline int msm_pcie_prevent_l1(struct pci_dev *pci_dev)
 	return -ENODEV;
 }
 
+static inline int msm_pcie_set_link_bandwidth(struct pci_dev *pci_dev,
+					      u16 target_link_speed,
+					      u16 target_link_width)
+{
+	return -ENODEV;
+}
+
 static inline int msm_pcie_l1ss_timeout_disable(struct pci_dev *pci_dev)
 {
 	return -ENODEV;
