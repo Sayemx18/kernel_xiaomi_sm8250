@@ -1764,6 +1764,7 @@ HIF_SDIO_NATIVE_SRC_DIR := $(HIF_SDIO_NATIVE_DIR)/src
 
 HIF_INC := -I $(srctree)/$(WLAN_COMMON_INC)/$(HIF_DIR)/inc \
 	   -I $(srctree)/$(WLAN_COMMON_INC)/$(HIF_DIR)/src
+HIF_INC += -I $(srctree)/$(WLAN_COMMON_INC)/$(HIF_CE_DIR)
 
 ifeq ($(CONFIG_HIF_PCI), y)
 HIF_INC += -I $(srctree)/$(WLAN_COMMON_INC)/$(HIF_DISPATCHER_DIR)
