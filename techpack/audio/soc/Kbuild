@@ -127,6 +127,7 @@ COMMON_INC :=	-I$(AUDIO_ROOT)/$(COMMON_DIR)
 # for pinctrl WCD driver
 ifdef CONFIG_PINCTRL_WCD
 	PINCTRL_WCD_OBJS += pinctrl-wcd.o
+ CFLAGS_pinctrl-wcd.o += -DCONFIG_PINCONF -DCONFIG_GENERIC_PINCONF
 endif
 
 # for pinctrl LPI driver
