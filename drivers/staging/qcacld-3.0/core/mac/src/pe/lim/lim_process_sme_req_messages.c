@@ -1434,9 +1434,11 @@ __lim_process_sme_join_req(struct mac_context *mac_ctx, void *msg_buf)
 		}
 
 
+#ifdef WLAN_FEATURE_11W
 		/* Record if management frames need to be protected */
 		session->limRmfEnabled =
 			lim_get_vdev_rmf_capable(mac_ctx, session);
+#endif
 
 #ifdef FEATURE_WLAN_DIAG_SUPPORT_LIM
 		session->rssi = bss_desc->rssi;

@@ -643,7 +643,7 @@ int bitmap_parse(const char *start, unsigned int buflen,
 		unsigned long *maskp, int nmaskbits)
 {
 	const char *end = strnchrnul(start, buflen, '\n') - 1;
-	int chunks = BITS_TO_U32(nmaskbits);
+	int chunks = DIV_ROUND_UP(nmaskbits, 32);
 	u32 *bitmap = (u32 *)maskp;
 	int unset_bit;
 	int chunk;
