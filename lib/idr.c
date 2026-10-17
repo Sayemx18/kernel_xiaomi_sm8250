@@ -260,6 +260,7 @@ void *idr_get_next_ul(struct idr *idr, unsigned long *nextid)
 {
 	struct radix_tree_iter iter;
 	void __rcu **slot;
+	void *entry;
 	unsigned long base = idr->idr_base;
 	unsigned long id = *nextid;
 
