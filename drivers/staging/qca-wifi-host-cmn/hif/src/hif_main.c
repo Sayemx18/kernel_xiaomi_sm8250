@@ -30,10 +30,10 @@
 #include <a_debug.h>
 #include "hif_main.h"
 #include "hif_hw_version.h"
+#include "ce_api.h"
 #if (defined(HIF_PCI) || defined(HIF_SNOC) || defined(HIF_AHB) || \
      defined(HIF_IPCI))
 #include "ce_tasklet.h"
-#include "ce_api.h"
 #endif
 #include "qdf_trace.h"
 #include "qdf_status.h"

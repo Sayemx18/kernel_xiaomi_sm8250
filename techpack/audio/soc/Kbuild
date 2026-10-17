@@ -133,6 +133,7 @@ endif
 # for pinctrl LPI driver
 ifdef CONFIG_PINCTRL_LPI
 	PINCTRL_LPI_OBJS += pinctrl-lpi.o
+ CFLAGS_pinctrl-lpi.o += -DCONFIG_PINMUX -DCONFIG_PINCONF -DCONFIG_GENERIC_PINCONF
 endif
 
 # for pinctrl LPI legacy driver
